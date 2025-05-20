@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Game Details: {{ game.home_team.name }} vs {{ game.away_team.name }} - NBA Game Predictions{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="game-details">
+    <div class="breadcrumb">
+        <a href="{{ url_for('index') }}">Home</a> &gt; Game Details
+    </div>
+    
+    <div class="game-header-card">
+        <div class="game-status">
+            <span class="game-type">{{ game.game_type }}</span>
+            <span class="game-time">{{ game.game_time }}</span>
+            <span class="game-location">{{ game.arena }}</span>
+        </div>
+        
+        <div class="matchup">
+            <div class="team-large home-team">
+                <div class="team-logo-large">{{ game.home_team.abbreviation }}</div>
+                <div class="team-name-large">{{ game.home_team.name }}</div>
+                <div class="team-record">({{ game.home_team.record }})</div>
+                <div class="win-probability">{{ game.prediction.home_win_probability }}%</div>
+            </div>
+            
+            <div class="versus-large">
+                <div class="versus-text">VS</div>
+                <div class="game-date">{{ game.date }}</div>
+            </div>
+            
+            <div class="team-large away-team">
+                <div class="team-logo-large">{{ game.away_team.abbreviation }}</div>
+                <div class="team-name-large">{{ game.away_team.name }}</div>
+                <div class="team-record">({{ game.away_team.record }})</div>
+                <div class="win-probability">{{ game.prediction.away_win_probability }}%</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="game-content">
+        <div class="prediction-details">
+            <h2>Prediction Details</h2>
+            <div class="prediction-chart">
+                <div class="gauge-container">
+                    <div class="gauge">
+                        <div class="gauge-fill" style="transform: rotate({{ (game.prediction.home_win_probability / 100 * 180) - 90 }}deg);"></div>
+                    </div>
+                    <div class="gauge-center">
+                        <div class="win-percent">{{ game.prediction.home_win_probability }}%</div>
+                        <div class="favored-team">{{ game.prediction.favored_team }} Win</div>
+                    </div>
+                </div>
+                
+                <div class="prediction-factors">
+                    <h3>Key Factors</h3>
+                    <ul>
+                        {% for factor in prediction_factors %}
+                        <li>
+                            <span class="factor-name">{{ factor.name }}:</span>
+                            <span class="factor-value">{{ factor.value }}</span>
+                            <div class="factor-bar">
+                                <div class="factor-fill" style="width: {{ factor.impact }}%;"></div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="teams-comparison">
+            <h2>Team Comparison</h2>
+            <div class="comparison-table">
+                <div class="comparison-header">
+                    <div class="home-column">{{ game.home_team.abbreviation }}</div>
+                    <div class="comparison-label">Stat</div>
+                    <div class="away-column">{{ game.away_team.abbreviation }}</div>
+                </div>
+                
+                {% for stat in team_comparison %}
+                <div class="comparison-row">
+                    <div class="home-column {{ 'better' if stat.home_better }}">{{ stat.home_value }}</div>  
+                    <div class="comparison-label">{{ stat.name }}</div>
+                    <div class="away-column {{ 'better' if stat.away_better }}">{{ stat.away_value }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="historical-matchups">
+            <h2>Recent Matchups</h2>
+            {% if historical_games %}
+                <div class="history-list">
+                    {% for h_game in historical_games %}
+                    <div class="history-item">
+                        <div class="history-date">{{ h_game.date }}</div>
+                        <div class="history-teams">
+                            <span class="{{ 'winner' if h_game.home_score > h_game.away_score }}">{{ game.home_team.abbreviation }} {{ h_game.home_score }}</span>
+                            -
+                            <span class="{{ 'winner' if h_game.away_score > h_game.home_score }}">{{ h_game.away_score }} {{ game.away_team.abbreviation }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="no-history">No recent matchups found.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/game.js') }}"></script>
+{% endblock %}

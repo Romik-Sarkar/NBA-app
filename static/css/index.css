@@ -1,0 +1,362 @@
+/* Enhanced Date Selector Styles */
+@import url("base.css");
+
+/* Games Grid (original styles) */
+.games-container {
+    margin-top: 30px;
+}
+
+.games-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.games-header h2 {
+    font-size: 24px;
+    color: var(--nba-blue);
+}
+
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+/* Game Card & Team Logo Styles (enhanced styles) */
+.game-card {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform 0.3s;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.game-card:hover {
+    transform: translateY(-5px);
+}
+
+.game-status {
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--nba-blue);
+    background-color: #f0f6ff;
+    padding: 5px 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.teams-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 40%;
+}
+
+.team-name {
+    font-weight: 600;
+    text-align: center;
+    font-size: 14px;
+}
+
+.team-abbr {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--nba-blue);
+}
+
+.team-logo {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: var(--light-gray);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+    overflow: hidden;
+    border: 2px solid #eee;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.team-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Enhanced score display with divider */
+.scores-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 80px;
+}
+
+.team-score {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--nba-red);
+    text-align: center;
+}
+
+.visitor-score {
+    text-align: right;
+}
+
+.home-score {
+    text-align: left;
+}
+
+.score-divider {
+    font-size: 18px;
+    font-weight: 500;
+    color: #888;
+}
+
+.vs-indicator {
+    font-size: 16px;
+    font-weight: 700;
+    color: #888;
+    text-align: center;
+    min-width: 40px;
+}
+
+/* Enhanced Date Selector Styles */
+.filters {
+    background: linear-gradient(135deg, #fff 0%, #f7f7f7 100%);
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-start; /* Align items to the top */
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filter-item label {
+    font-weight: 600;
+    color: var(--nba-blue);
+    white-space: nowrap;
+}
+
+.filter-item select {
+    padding: 10px 15px;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    background-color: white;
+    font-size: 14px;
+    min-width: 150px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.filter-item select:focus {
+    border-color: var(--nba-blue);
+    box-shadow: 0 0 0 2px rgba(7, 100, 175, 0.2);
+    outline: none;
+}
+
+.date-filter {
+    flex: 0 1 auto; /* Don't grow, shrink if needed, auto basis */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.date-filter-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.date-wrapper {
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+/* Style the date input to make it more visually appealing */
+#date {
+    padding: 10px 15px;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    background-color: white;
+    font-size: 14px;
+    width: 140px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#date:focus {
+    border-color: var(--nba-blue);
+    box-shadow: 0 0 0 2px rgba(7, 100, 175, 0.2);
+    outline: none;
+}
+
+/* Calendar icon for date input */
+.date-wrapper::after {
+    content: "📅";
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+/* Week View Container */
+.week-view-container {
+    display: flex;
+    align-items: center;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    border: 1px solid #e6e6e6;
+    max-width: 100%;
+    flex: 1;
+}
+
+.week-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    cursor: pointer;
+    color: var(--nba-blue);
+    font-size: 18px;
+    transition: background-color 0.2s ease;
+    flex-shrink: 0;
+}
+
+.week-nav:hover {
+    background-color: #f0f6ff;
+}
+
+.week-days {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none; /* For Firefox */
+    flex: 1;
+}
+
+.week-days::-webkit-scrollbar {
+    display: none; /* For Chrome, Safari and Opera */
+}
+
+.week-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 60px;
+    height: 64px;
+    cursor: pointer;
+    border-left: 1px solid #f0f0f0;
+    transition: all 0.2s ease;
+    flex: 1;
+}
+
+.week-day:first-child {
+    border-left: none;
+}
+
+.week-day:hover {
+    background-color: #f0f6ff;
+}
+
+.week-day.selected {
+    background-color: var(--nba-blue);
+    color: white;
+}
+
+.week-day.today {
+    border: 2px solid var(--nba-red);
+    border-radius: 4px;
+    margin: 0 2px;
+}
+
+.day-name {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.day-number {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+    margin-top: 4px;
+}
+
+/* Loading and error states */
+.loading, .error, .no-games, .no-matches {
+    grid-column: 1 / -1;
+    padding: 2rem;
+    text-align: center;
+    font-size: 1.1rem;
+    color: #555;
+    background: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+}
+
+.error {
+    color: #c41e3a;
+    background: #fff0f0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-item {
+        width: 100%;
+    }
+    
+    .date-filter-row {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+    }
+    
+    .week-view-container {
+        width: 100%;
+    }
+    
+    .date-wrapper {
+        width: 100%;
+    }
+    
+    #date {
+        width: 100%;
+    }
+}
