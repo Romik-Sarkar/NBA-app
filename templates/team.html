@@ -1,91 +1,241 @@
 {% extends "base.html" %}
 
-{% block title %}Team: {{ team.full_name }} - NBA Game Predictions{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/team.css') }}">
-{% endblock %}
+{% block title %}{{ team.full_name }} - Team Details{% endblock %}
 
 {% block content %}
-<div class="team-page">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/team.css') }}">
+
+<div class="team-container">
+    <!-- Team Header -->
     <div class="team-header">
-        <div class="team-info">
-            <div class="team-logo-large">{{ team.abbreviation }}</div>
-            <div class="team-details">
-                <h1>{{ team.full_name }}</h1>
-                <div class="team-record">
-                    <span>Season Record: {{ team_stats.wins }}-{{ team_stats.losses }}</span>
-                    <span>Conference: {{ team.conference }}</span>
-                </div>
-            </div>
+        <div class="team-logo-large">
+            <img src="https://cdn.nba.com/logos/nba/{{ team.id }}/primary/L/logo.svg" 
+                 alt="{{ team.full_name }} logo" 
+                 onerror="this.src='/static/img/nba-logo.png'">
         </div>
-        <div class="team-stats">
-            <div class="stat-card">
-                <div class="stat-value">{{ team_stats.points_per_game | round(1) }}</div>
-                <div class="stat-label">PPG</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">{{ team_stats.rebounds_per_game | round(1) }}</div>
-                <div class="stat-label">RPG</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">{{ team_stats.assists_per_game | round(1) }}</div>
-                <div class="stat-label">APG</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">{{ (team_stats.win_pct * 100) | round(1) }}%</div>
-                <div class="stat-label">Win %</div>
+        <div class="team-title">
+            <h1>{{ team.full_name }}</h1>
+            <div class="team-record">
+                <span class="record-item">{{ team_stats.wins }}-{{ team_stats.losses }}</span>
+                <span class="record-item">{{ (team_stats.win_pct * 100)|round(1) }}%</span>
+                <span class="record-item">{{ team.conference }} Conference</span>
             </div>
         </div>
     </div>
-    
-    <div class="team-content">
-        <div class="roster-section">
-            <h2>Team Roster</h2>
-            <div class="player-grid">
-                {% for player in roster %}
-                <div class="player-card">
-                    <div class="player-number">{{ player.jersey }}</div>
-                    <div class="player-name">{{ player.name }}</div>
-                    <div class="player-position">{{ player.position }}</div>
-                    <div class="player-details">
-                        <span>{{ player.height }}</span> |
-                        <span>{{ player.weight }} lbs</span> |
-                        <span>{{ player.age }} yrs</span>
+
+    <!-- Team Stats Overview -->
+    <div class="team-stats-overview">
+        <div class="stat-box">
+            <div class="stat-value">{{ team_stats.points_per_game|round(1) }}</div>
+            <div class="stat-label">PPG</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ team_stats.rebounds_per_game|round(1) }}</div>
+            <div class="stat-label">RPG</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ team_stats.assists_per_game|round(1) }}</div>
+            <div class="stat-label">APG</div>
+        </div>
+    </div>
+
+    <!-- Full-width Roster Section -->
+    <div class="team-section roster-section">
+        <h2>Team Roster</h2>
+        <div class="roster-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th class="player-col">Player</th>
+                        <th>Pos</th>
+                        <th>Height</th>
+                        <th>Weight</th>
+                        <th>GP</th>
+                        <th>MIN</th>
+                        <th>PPG</th>
+                        <th>OREB</th>
+                        <th>DREB</th>
+                        <th>RPG</th>
+                        <th>APG</th>
+                        <th>SPG</th>
+                        <th>BPG</th>
+                        <th>TO</th>
+                        <th>PF</th>
+                        <th>AST/TO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if roster %}
+                        {% for player in roster %}
+                        <tr>
+                            <td>{{ player.jersey }}</td>
+                            <td class="player-col">{{ player.name }}</td>
+                            <td>{{ player.position }}</td>
+                            <td>{{ player.height }}</td>
+                            <td>{{ player.weight }}</td>
+                            <td>{{ player.gp|default(0) }}</td>
+                            <td>{{ player.min|default('0.0') }}</td>
+                            <td>{{ player.ppg|default('0.0') }}</td>
+                            <td>{{ player.oreb|default('0.0') }}</td>
+                            <td>{{ player.dreb|default('0.0') }}</td>
+                            <td>{{ player.rpg|default('0.0') }}</td>
+                            <td>{{ player.apg|default('0.0') }}</td>
+                            <td>{{ player.spg|default('0.0') }}</td>
+                            <td>{{ player.bpg|default('0.0') }}</td>
+                            <td>{{ player.to|default('0.0') }}</td>
+                            <td>{{ player.pf|default('0.0') }}</td>
+                            <td>{{ player.ast_to|default('0.0') }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="17" class="no-data">Roster data not available</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Two Column Layout for remaining content -->
+    <div class="team-content-container">
+        <!-- Left Column -->
+        <div class="team-column">
+            <!-- Team Stats Section -->
+            <div class="team-section">
+                <h2>Team Stats</h2>
+                <div class="stats-container">
+                    <div class="team-advanced-stats">
+                        <div class="stat-grid">
+                            <div class="stat-grid-item">
+                                <div class="stat-name">Points Per Game</div>
+                                <div class="stat-value">{{ team_stats.points_per_game|round(1) }}</div>
+                            </div>
+                            <div class="stat-grid-item">
+                                <div class="stat-name">Rebounds Per Game</div>
+                                <div class="stat-value">{{ team_stats.rebounds_per_game|round(1) }}</div>
+                            </div>
+                            <div class="stat-grid-item">
+                                <div class="stat-name">Assists Per Game</div>
+                                <div class="stat-value">{{ team_stats.assists_per_game|round(1) }}</div>
+                            </div>
+                            <div class="stat-grid-item">
+                                <div class="stat-name">Win Percentage</div>
+                                <div class="stat-value">{{ (team_stats.win_pct * 100)|round(1) }}%</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                {% endfor %}
+            </div>
+            
+            <!-- Top Players Section -->
+            <div class="team-section">
+                <h2>Top Performers</h2>
+                <div class="top-performers">
+                    {% if roster %}
+                        <div class="top-performer-categories">
+                            <!-- Points Leader -->
+                            <div class="top-performer-category">
+                                <h3>Points Leader</h3>
+                                {% set points_leader = roster|sort(attribute='ppg')|reverse|first %}
+                                <div class="performer-info">
+                                    <div class="performer-name">{{ points_leader.name }}</div>
+                                    <div class="performer-value">{{ points_leader.ppg|default('0.0') }} PPG</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Rebounds Leader -->
+                            <div class="top-performer-category">
+                                <h3>Rebounds Leader</h3>
+                                {% set rebounds_leader = roster|sort(attribute='rpg')|reverse|first %}
+                                <div class="performer-info">
+                                    <div class="performer-name">{{ rebounds_leader.name }}</div>
+                                    <div class="performer-value">{{ rebounds_leader.rpg|default('0.0') }} RPG</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Assists Leader -->
+                            <div class="top-performer-category">
+                                <h3>Assists Leader</h3>
+                                {% set assists_leader = roster|sort(attribute='apg')|reverse|first %}
+                                <div class="performer-info">
+                                    <div class="performer-name">{{ assists_leader.name }}</div>
+                                    <div class="performer-value">{{ assists_leader.apg|default('0.0') }} APG</div>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="no-data">Top performers data not available</div>
+                    {% endif %}
+                </div>
             </div>
         </div>
-        
-        <div class="team-schedule">
-            <h2>Upcoming Games</h2>
-            <div class="schedule-grid">
-                {% if upcoming_games %}
-                    {% for game in upcoming_games %}
-                    <div class="schedule-item">
-                        <div class="game-date">{{ game.date }}</div>
-                        <div class="game-matchup">
-                            {% if game.is_home %}
-                            vs {{ game.opponent }}
-                            {% else %}
-                            @ {{ game.opponent }}
-                            {% endif %}
+
+        <!-- Right Column -->
+        <div class="team-column">
+            <!-- Upcoming Games -->
+            <div class="team-section">
+                <h2>Upcoming Games</h2>
+                <div class="upcoming-games">
+                    {% if upcoming_games %}
+                        {% for game in upcoming_games %}
+                        <div class="game-card">
+                            <div class="game-date">{{ game.date }}</div>
+                            <div class="game-matchup">
+                                {% if game.is_home %}
+                                    <span class="vs">vs</span> {{ game.opponent }}
+                                {% else %}
+                                    <span class="at">@</span> {{ game.opponent }}
+                                {% endif %}
+                            </div>
+                            <div class="win-probability">
+                                <div class="probability-label">Win Probability</div>
+                                <div class="probability-bar">
+                                    <div class="probability-fill" style="width: {{ game.win_probability }}%"></div>
+                                    <div class="probability-text">{{ game.win_probability }}%</div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="game-prediction">
-                            {{ game.win_probability }}% chance to win
+                        {% endfor %}
+                    {% else %}
+                        <div class="no-data">No upcoming games</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Team Form -->
+            <div class="team-section">
+                <h2>Team Form</h2>
+                <div class="team-form">
+                    <div class="form-indicator">
+                        <div class="form-title">Last 10 Games</div>
+                        <div class="form-circles">
+                            {% for i in range(5) %}
+                            <span class="form-circle win"></span>
+                            <span class="form-circle loss"></span>
+                            {% endfor %}
                         </div>
                     </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="no-games">No upcoming games scheduled.</div>
-                {% endif %}
+                    <div class="form-stats">
+                        <div class="form-stat">
+                            <div class="form-stat-value">{{ team_stats.wins }}</div>
+                            <div class="form-stat-label">Wins</div>
+                        </div>
+                        <div class="form-stat">
+                            <div class="form-stat-value">{{ team_stats.losses }}</div>
+                            <div class="form-stat-label">Losses</div>
+                        </div>
+                        <div class="form-stat">
+                            <div class="form-stat-value">{{ (team_stats.win_pct * 100)|round(1) }}%</div>
+                            <div class="form-stat-label">Win %</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
-<script src="{{ url_for('static', filename='js/team.js') }}"></script>
+
 {% endblock %}
