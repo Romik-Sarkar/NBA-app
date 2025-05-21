@@ -3,15 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize the enhanced date selector
     initDateSelector();
     
-    // Other existing initializations...
-    const teamSelect = document.getElementById('team');
-    const applyButton = document.getElementById('apply-filters');
-    const gamesGrid = document.querySelector('.games-grid');
-    const gamesCounter = document.querySelector('.games-counter');
-    const displayedDate = document.getElementById('displayed-date');
-    
-    // Original functions (kept as they were)
-    // Format date for display
+    // Global date formatting functions
     function formatDisplayDate(dateString) {
         // Parse the input date string (YYYY-MM-DD from date input)
         const parts = dateString.split('-');
@@ -27,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         return `${months[month]} ${day}, ${year}`;
     }
-    
+
     // Format date for API
     function formatApiDate(dateString) {
         // Parse the input date string (YYYY-MM-DD from date input)
@@ -47,6 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function initDateSelector() {
         const dateInput = document.getElementById('date');
         const weekViewContainer = document.querySelector('.week-view-container');
+        const displayedDate = document.getElementById('displayed-date');
         let currentDate = new Date();
         
         // Set initial date if input has a value
@@ -61,6 +54,11 @@ document.addEventListener('DOMContentLoaded', function() {
             dateInput.value = formatDateForInput(today);
         }
         
+        // Update displayed date
+        if (displayedDate) {
+            displayedDate.textContent = formatDisplayDate(dateInput.value);
+        }
+        
         // Initialize week view
         updateWeekView(currentDate);
         
@@ -68,7 +66,16 @@ document.addEventListener('DOMContentLoaded', function() {
         dateInput.addEventListener('change', function() {
             const selectedDate = getDateFromInput(this.value);
             updateWeekView(selectedDate);
-            fetchGames(this.value);
+            
+            // Update displayed date
+            if (displayedDate) {
+                displayedDate.textContent = formatDisplayDate(this.value);
+            }
+            
+            // Call fetchGames if it exists in the global scope
+            if (typeof window.fetchGames === 'function') {
+                window.fetchGames(this.value);
+            }
         });
         
         // Week navigation buttons
@@ -86,19 +93,24 @@ document.addEventListener('DOMContentLoaded', function() {
             const newDate = new Date(currentSelectedDate);
             newDate.setDate(newDate.getDate() + dayOffset);
             
-            dateInput.value = formatDateForInput(newDate);
-            updateWeekView(newDate);
-            fetchGames(dateInput.value);
+            // Don't change the input value or fetch games, just update the week view
+            // This allows browsing weeks without changing the selected date
+            updateWeekView(currentSelectedDate, newDate);
         }
         
         // Update week view based on selected date
-        function updateWeekView(selectedDate) {
+        function updateWeekView(selectedDate, weekCenterDate = null) {
+            // Use provided week center date or default to selected date
+            const weekCenter = weekCenterDate || selectedDate;
+            
             // Get the week start date (Sunday)
-            const weekStart = new Date(selectedDate);
-            weekStart.setDate(selectedDate.getDate() - selectedDate.getDay());
+            const weekStart = new Date(weekCenter);
+            weekStart.setDate(weekCenter.getDate() - weekCenter.getDay());
             
             // Clear existing days
             const weekDaysContainer = document.querySelector('.week-days');
+            if (!weekDaysContainer) return; // Safety check
+            
             weekDaysContainer.innerHTML = '';
             
             // Create 7 day elements
@@ -138,8 +150,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Update the week view (mark the selected day)
                     updateWeekView(dayDate);
                     
-                    // Fetch games for the selected date
-                    fetchGames(formattedDate);
+                    // Update displayed date
+                    if (displayedDate) {
+                        displayedDate.textContent = formatDisplayDate(formattedDate);
+                    }
+                    
+                    // Call fetchGames if it exists in the global scope
+                    if (typeof window.fetchGames === 'function') {
+                        window.fetchGames(formattedDate);
+                    }
                 });
                 
                 weekDaysContainer.appendChild(dayElement);
@@ -171,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return `${year}-${month}-${day}`;
     }
     
-    // Call existing functions to fetch teams and games
-    fetchTeams();
-    fetchGames(document.getElementById('date').value);
+    // Expose key functions to global scope for access from other scripts
+    window.formatDisplayDate = formatDisplayDate;
+    window.formatApiDate = formatApiDate;
 });

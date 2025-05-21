@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}NBA Teams & Standings{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/teams.css') }}">
+
+<div class="standings-container">
+    <h1>NBA Standings 2024-25</h1>
+    
+    <div class="standings-header">
+        <div class="last-updated">Last updated: <span id="update-time">Loading...</span></div>
+        <div class="standings-legend">
+            <div class="legend-item playoff">Playoff position</div>
+            <div class="legend-item play-in">Play-in tournament</div>
+        </div>
+    </div>
+
+    <div class="conferences-container">
+        <!-- Eastern Conference -->
+        <div class="conference eastern">
+            <h2>Eastern Conference</h2>
+            <div class="standings-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th class="team-col">Team</th>
+                            <th>W</th>
+                            <th>L</th>
+                            <th>PCT</th>
+                        </tr>
+                    </thead>
+                    <tbody id="east-standings">
+                        <tr><td colspan="5" class="loading">Loading standings...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Western Conference -->
+        <div class="conference western">
+            <h2>Western Conference</h2>
+            <div class="standings-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th class="team-col">Team</th>
+                            <th>W</th>
+                            <th>L</th>
+                            <th>PCT</th>
+                        </tr>
+                    </thead>
+                    <tbody id="west-standings">
+                        <tr><td colspan="5" class="loading">Loading standings...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to fetch standings data
+    async function fetchStandings() {
+        try {
+            const response = await fetch('/api/standings');
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error fetching standings:', error);
+            return [];
+        }
+    }
+
+    // Function to render standings
+    function renderStandings(teams) {
+        // Split teams by conference
+        const eastTeams = teams.filter(team => team.Conference === 'East')
+                              .sort((a, b) => a.ConferenceRank - b.ConferenceRank);
+        const westTeams = teams.filter(team => team.Conference === 'West')
+                              .sort((a, b) => a.ConferenceRank - b.ConferenceRank);
+        
+        // Update east standings
+        const eastStandingsEl = document.getElementById('east-standings');
+        eastStandingsEl.innerHTML = '';
+        
+        eastTeams.forEach(team => {
+            const row = createTeamRow(team);
+            eastStandingsEl.appendChild(row);
+        });
+        
+        // Update west standings
+        const westStandingsEl = document.getElementById('west-standings');
+        westStandingsEl.innerHTML = '';
+        
+        westTeams.forEach(team => {
+            const row = createTeamRow(team);
+            westStandingsEl.appendChild(row);
+        });
+        
+        // Update last updated time
+        document.getElementById('update-time').textContent = new Date().toLocaleString();
+    }
+    
+    // Function to create team row in standings
+    function createTeamRow(team) {
+        const tr = document.createElement('tr');
+        
+        // Add playoff/play-in tournament classes based on rank
+        if (team.ConferenceRank <= 6) {
+            tr.classList.add('playoff-team');
+        } else if (team.ConferenceRank <= 10) {
+            tr.classList.add('play-in-team');
+        }
+        
+        // Format win percentage to 3 decimal places
+        const winPct = (team.WinPercentage).toFixed(3).replace(/^0+/, '');
+        
+        tr.innerHTML = `
+            <td>${team.ConferenceRank}</td>
+            <td class="team-col">
+                <a href="/team/${team.id}" class="team-link">
+                    <div class="team-logo-container">
+                        <img src="https://cdn.nba.com/logos/nba/${team.id}/primary/L/logo.svg" 
+                             alt="${team.full_name} logo" 
+                             class="team-logo" 
+                             onerror="this.src='/static/img/nba-logo.png'">
+                    </div>
+                    <div class="team-info">
+                        <div class="team-name">${team.full_name}</div>
+                        <div class="team-record">(${team.WINS}-${team.LOSSES})</div>
+                    </div>
+                </a>
+            </td>
+            <td>${team.WINS}</td>
+            <td>${team.LOSSES}</td>
+            <td>${winPct}</td>
+        `;
+        
+        return tr;
+    }
+    
+    // Initial fetch and render
+    fetchStandings().then(renderStandings);
+});
+</script>
+{% endblock %}

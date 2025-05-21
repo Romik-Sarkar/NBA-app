@@ -1,34 +1,27 @@
-from nba_api.stats.endpoints import scoreboardv2
-import time
+from nba_api.stats.static import teams
+from nba_api.stats.endpoints import leaguestandings
+import pandas as pd
 
-time.sleep(1.5)
+# Get all NBA teams
+nba_teams = teams.get_teams()
+team_info_df = pd.DataFrame(nba_teams)[['id', 'full_name', 'abbreviation']]
 
-game_date = '05/20/2025'
+# Get current league standings
+standings_df = leaguestandings.LeagueStandings(season='2024-25').get_data_frames()[0]
 
-try:
-    scoreboard = scoreboardv2.ScoreboardV2(game_date=game_date)
+# Select and rename relevant columns
+standings = standings_df[['TeamID', 'TeamName', 'Conference', 'PlayoffRank', 'WINS', 'LOSSES', 'WinPCT']]
+standings = standings.rename(columns={
+    'TeamID': 'id',
+    'PlayoffRank': 'ConferenceRank',
+    'WinPCT': 'WinPercentage'
+})
 
-    game_headers = scoreboard.get_data_frames()[0]  # GameHeader
-    linescores = scoreboard.get_data_frames()[1]    # LineScore
+# Merge with team info to get full names and abbreviations
+merged_df = pd.merge(team_info_df, standings, on='id')
 
-    if game_headers.empty:
-        print(f"📭 No NBA games found on {game_date}.")
-    else:
-        print(f"🏀 NBA Games on {game_date}:")
+# Sort by Conference and ConferenceRank
+merged_df = merged_df.sort_values(by=['Conference', 'ConferenceRank'])
 
-        for _, game in game_headers.iterrows():
-            home_team_id = game['HOME_TEAM_ID']
-            visitor_team_id = game['VISITOR_TEAM_ID']
-            game_status = game['GAME_STATUS_TEXT']  # e.g. "Scheduled", "Final"
-
-            # Get team names from LineScore
-            home_team = linescores[linescores['TEAM_ID'] == home_team_id]
-            visitor_team = linescores[linescores['TEAM_ID'] == visitor_team_id]
-
-            home_name = (home_team.iloc[0]['TEAM_CITY_NAME'] + " " + home_team.iloc[0]['TEAM_NAME']) if not home_team.empty else "Unknown Home"
-            visitor_name = (visitor_team.iloc[0]['TEAM_CITY_NAME'] + " " + visitor_team.iloc[0]['TEAM_NAME']) if not visitor_team.empty else "Unknown Visitor"
-
-            print(f" - {visitor_name} vs {home_name} [{game_status}]")
-
-except Exception as e:
-    print("❌ Failed to fetch games:", e)
+# Clean display
+print(merged_df[['full_name', 'abbreviation', 'Conference', 'ConferenceRank', 'WINS', 'LOSSES', 'WinPercentage']].to_string(index=False))

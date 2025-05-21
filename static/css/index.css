@@ -314,6 +314,12 @@
     margin-top: 4px;
 }
 
+.week-day-button.active {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+}
+
 /* Loading and error states */
 .loading, .error, .no-games, .no-matches {
     grid-column: 1 / -1;
@@ -359,4 +365,6 @@
     #date {
         width: 100%;
     }
+
+    
 }
