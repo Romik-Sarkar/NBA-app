@@ -19,24 +19,79 @@
                 <span class="record-item">{{ team_stats.wins }}-{{ team_stats.losses }}</span>
                 <span class="record-item">{{ (team_stats.win_pct * 100)|round(1) }}%</span>
                 <span class="record-item">{{ team.conference }} Conference</span>
+                {% if team_stats.conference_rank %}
+                    <span class="record-item">#{{ team_stats.conference_rank }} in {{ team.conference }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="team-stats-header">
+            <div class="stat-box">
+                <div class="stat-value">{{ team_stats.points_per_game|round(1) }}</div>
+                <div class="stat-label">PPG</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">{{ team_stats.rebounds_per_game|round(1) }}</div>
+                <div class="stat-label">RPG</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">{{ team_stats.assists_per_game|round(1) }}</div>
+                <div class="stat-label">APG</div>
             </div>
         </div>
     </div>
 
-    <!-- Team Stats Overview -->
+    <!-- Top Performers Overview -->
     <div class="team-stats-overview">
-        <div class="stat-box">
-            <div class="stat-value">{{ team_stats.points_per_game|round(1) }}</div>
-            <div class="stat-label">PPG</div>
-        </div>
-        <div class="stat-box">
-            <div class="stat-value">{{ team_stats.rebounds_per_game|round(1) }}</div>
-            <div class="stat-label">RPG</div>
-        </div>
-        <div class="stat-box">
-            <div class="stat-value">{{ team_stats.assists_per_game|round(1) }}</div>
-            <div class="stat-label">APG</div>
-        </div>
+        {% if roster and roster|length > 0 %}
+            <!-- Points Leader -->
+            <div class="stat-box performer-box">
+                {% set points_leader = roster|selectattr('ppg', 'defined')|sort(attribute='ppg', reverse=true)|first %}
+                {% if points_leader %}
+                    <div class="stat-value">{{ points_leader.name }}</div>
+                    <div class="stat-label">{{ "%.1f"|format(points_leader.ppg|default(0.0)) }} PPG Leader</div>
+                {% else %}
+                    <div class="stat-value">-</div>
+                    <div class="stat-label">Points Leader</div>
+                {% endif %}
+            </div>
+            
+            <!-- Rebounds Leader -->
+            <div class="stat-box performer-box">
+                {% set rebounds_leader = roster|selectattr('rpg', 'defined')|sort(attribute='rpg', reverse=true)|first %}
+                {% if rebounds_leader %}
+                    <div class="stat-value">{{ rebounds_leader.name }}</div>
+                    <div class="stat-label">{{ "%.1f"|format(rebounds_leader.rpg|default(0.0)) }} RPG Leader</div>
+                {% else %}
+                    <div class="stat-value">-</div>
+                    <div class="stat-label">Rebounds Leader</div>
+                {% endif %}
+            </div>
+            
+            <!-- Assists Leader -->
+            <div class="stat-box performer-box">
+                {% set assists_leader = roster|selectattr('apg', 'defined')|sort(attribute='apg', reverse=true)|first %}
+                {% if assists_leader %}
+                    <div class="stat-value">{{ assists_leader.name }}</div>
+                    <div class="stat-label">{{ "%.1f"|format(assists_leader.apg|default(0.0)) }} APG Leader</div>
+                {% else %}
+                    <div class="stat-value">-</div>
+                    <div class="stat-label">Assists Leader</div>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="stat-box performer-box">
+                <div class="stat-value">-</div>
+                <div class="stat-label">Points Leader</div>
+            </div>
+            <div class="stat-box performer-box">
+                <div class="stat-value">-</div>
+                <div class="stat-label">Rebounds Leader</div>
+            </div>
+            <div class="stat-box performer-box">
+                <div class="stat-value">-</div>
+                <div class="stat-label">Assists Leader</div>
+            </div>
+        {% endif %}
     </div>
 
     <!-- Full-width Roster Section -->
@@ -148,60 +203,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Top Players Section -->
-            <div class="team-section">
-                <h2>Top Performers</h2>
-                <div class="top-performers">
-                    {% if roster and roster|length > 0 %}
-                        <div class="top-performer-categories">
-                            <!-- Points Leader -->
-                            <div class="top-performer-category">
-                                <h3>Points Leader</h3>
-                                {% set points_leader = roster|selectattr('ppg', 'defined')|sort(attribute='ppg', reverse=true)|first %}
-                                {% if points_leader %}
-                                    <div class="performer-info">
-                                        <div class="performer-name">{{ points_leader.name }}</div>
-                                        <div class="performer-value">{{ "%.1f"|format(points_leader.ppg|default(0.0)) }} PPG</div>
-                                    </div>
-                                {% else %}
-                                    <div class="no-data">No data available</div>
-                                {% endif %}
-                            </div>
-                            
-                            <!-- Rebounds Leader -->
-                            <div class="top-performer-category">
-                                <h3>Rebounds Leader</h3>
-                                {% set rebounds_leader = roster|selectattr('rpg', 'defined')|sort(attribute='rpg', reverse=true)|first %}
-                                {% if rebounds_leader %}
-                                    <div class="performer-info">
-                                        <div class="performer-name">{{ rebounds_leader.name }}</div>
-                                        <div class="performer-value">{{ "%.1f"|format(rebounds_leader.rpg|default(0.0)) }} RPG</div>
-                                    </div>
-                                {% else %}
-                                    <div class="no-data">No data available</div>
-                                {% endif %}
-                            </div>
-                            
-                            <!-- Assists Leader -->
-                            <div class="top-performer-category">
-                                <h3>Assists Leader</h3>
-                                {% set assists_leader = roster|selectattr('apg', 'defined')|sort(attribute='apg', reverse=true)|first %}
-                                {% if assists_leader %}
-                                    <div class="performer-info">
-                                        <div class="performer-name">{{ assists_leader.name }}</div>
-                                        <div class="performer-value">{{ "%.1f"|format(assists_leader.apg|default(0.0)) }} APG</div>
-                                    </div>
-                                {% else %}
-                                    <div class="no-data">No data available</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    {% else %}
-                        <div class="no-data">Top performers data not available</div>
-                    {% endif %}
                 </div>
             </div>
         </div>

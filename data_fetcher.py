@@ -140,15 +140,16 @@ def fetch_and_store_standings():
         return False
 
 def fetch_and_store_team_stats(team_id, season='2024-25'):
-    """Fetch detailed team stats and update database"""
+    """Fetch detailed team stats and update database - FIXED to get per-game averages"""
     try:
         print(f"Fetching team stats for team ID: {team_id}")
         
-        # Get team dashboard stats
+        # Get team dashboard stats with per_mode_detailed="PerGame" to get averages
         team_dashboard = safe_api_call(
             teamdashboardbygeneralsplits.TeamDashboardByGeneralSplits,
             team_id=team_id,
-            season=season
+            season=season,
+            per_mode_detailed="PerGame"  # This is the key parameter that was missing!
         )
         
         # Get overall team stats (first row contains season averages)
@@ -159,16 +160,16 @@ def fetch_and_store_team_stats(team_id, season='2024-25'):
             
             team_stats = TeamStats.query.get(team_id)
             if team_stats:
-                team_stats.points_per_game = stats_row.get('PTS', 0.0)
-                team_stats.rebounds_per_game = stats_row.get('REB', 0.0)
-                team_stats.assists_per_game = stats_row.get('AST', 0.0)
+                team_stats.points_per_game = float(stats_row.get('PTS', 0.0))
+                team_stats.rebounds_per_game = float(stats_row.get('REB', 0.0))
+                team_stats.assists_per_game = float(stats_row.get('AST', 0.0))
                 team_stats.last_updated = datetime.utcnow()
             else:
                 team_stats = TeamStats(
                     team_id=team_id,
-                    points_per_game=stats_row.get('PTS', 0.0),
-                    rebounds_per_game=stats_row.get('REB', 0.0),
-                    assists_per_game=stats_row.get('AST', 0.0)
+                    points_per_game=float(stats_row.get('PTS', 0.0)),
+                    rebounds_per_game=float(stats_row.get('REB', 0.0)),
+                    assists_per_game=float(stats_row.get('AST', 0.0))
                 )
                 db.session.add(team_stats)
         
@@ -180,7 +181,7 @@ def fetch_and_store_team_stats(team_id, season='2024-25'):
         print(f"Error fetching team stats for team {team_id}: {str(e)}")
         db.session.rollback()
         return False
-
+    
 def fetch_and_store_team_roster(team_id, season='2024-25'):
     """Fetch team roster and player stats"""
     try:
