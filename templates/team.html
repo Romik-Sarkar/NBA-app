@@ -42,50 +42,72 @@
     <!-- Full-width Roster Section -->
     <div class="team-section roster-section">
         <h2>Team Roster</h2>
+        <div class="roster-controls">
+            <div class="roster-search">
+                <input type="text" id="player-search" placeholder="Search players..." />
+            </div>
+            <div class="roster-sort">
+                <select id="sort-select">
+                    <option value="name">Sort by Name</option>
+                    <option value="ppg">Sort by PPG</option>
+                    <option value="rpg">Sort by RPG</option>
+                    <option value="apg">Sort by APG</option>
+                    <option value="jersey">Sort by Jersey #</option>
+                </select>
+            </div>
+        </div>
         <div class="roster-table">
-            <table>
+            <table id="roster-table">
                 <thead>
                     <tr>
-                        <th>#</th>
-                        <th class="player-col">Player</th>
-                        <th>Pos</th>
-                        <th>Height</th>
-                        <th>Weight</th>
-                        <th>GP</th>
-                        <th>MIN</th>
-                        <th>PPG</th>
-                        <th>OREB</th>
-                        <th>DREB</th>
-                        <th>RPG</th>
-                        <th>APG</th>
-                        <th>SPG</th>
-                        <th>BPG</th>
-                        <th>TO</th>
-                        <th>PF</th>
-                        <th>AST/TO</th>
+                        <th data-sort="jersey">#</th>
+                        <th class="player-col" data-sort="name">Player</th>
+                        <th data-sort="position">Pos</th>
+                        <th data-sort="height">Height</th>
+                        <th data-sort="weight">Weight</th>
+                        <th data-sort="gp">GP</th>
+                        <th data-sort="min">MIN</th>
+                        <th data-sort="ppg">PPG</th>
+                        <th data-sort="oreb">OREB</th>
+                        <th data-sort="dreb">DREB</th>
+                        <th data-sort="rpg">RPG</th>
+                        <th data-sort="apg">APG</th>
+                        <th data-sort="spg">SPG</th>
+                        <th data-sort="bpg">BPG</th>
+                        <th data-sort="to">TO</th>
+                        <th data-sort="pf">PF</th>
+                        <th data-sort="ast_to">AST/TO</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% if roster %}
+                    {% if roster and roster|length > 0 %}
                         {% for player in roster %}
-                        <tr>
-                            <td>{{ player.jersey }}</td>
-                            <td class="player-col">{{ player.name }}</td>
-                            <td>{{ player.position }}</td>
-                            <td>{{ player.height }}</td>
-                            <td>{{ player.weight }}</td>
-                            <td>{{ player.gp|default(0) }}</td>
-                            <td>{{ player.min|default('0.0') }}</td>
-                            <td>{{ player.ppg|default('0.0') }}</td>
-                            <td>{{ player.oreb|default('0.0') }}</td>
-                            <td>{{ player.dreb|default('0.0') }}</td>
-                            <td>{{ player.rpg|default('0.0') }}</td>
-                            <td>{{ player.apg|default('0.0') }}</td>
-                            <td>{{ player.spg|default('0.0') }}</td>
-                            <td>{{ player.bpg|default('0.0') }}</td>
-                            <td>{{ player.to|default('0.0') }}</td>
-                            <td>{{ player.pf|default('0.0') }}</td>
-                            <td>{{ player.ast_to|default('0.0') }}</td>
+                        <tr class="player-row" data-player-name="{{ player.name|lower }}">
+                            <td data-value="{{ player.jersey if player.jersey != 'N/A' else '999' }}">
+                                {{ player.jersey if player.jersey != 'N/A' else '-' }}
+                            </td>
+                            <td class="player-col" data-value="{{ player.name|lower }}">{{ player.name }}</td>
+                            <td data-value="{{ player.position }}">{{ player.position if player.position != 'N/A' else '-' }}</td>
+                            <td data-value="{{ player.height }}">{{ player.height if player.height != 'N/A' else '-' }}</td>
+                            <td data-value="{{ player.weight }}">{{ player.weight if player.weight != 'N/A' else '-' }}</td>
+                            <td data-value="{{ player.gp|default(0) }}">{{ player.gp|default(0) }}</td>
+                            <td data-value="{{ player.min|default(0.0) }}">{{ "%.1f"|format(player.min|default(0.0)) }}</td>
+                            <td data-value="{{ player.ppg|default(0.0) }}">{{ "%.1f"|format(player.ppg|default(0.0)) }}</td>
+                            <td data-value="{{ player.oreb|default(0.0) }}">{{ "%.1f"|format(player.oreb|default(0.0)) }}</td>
+                            <td data-value="{{ player.dreb|default(0.0) }}">{{ "%.1f"|format(player.dreb|default(0.0)) }}</td>
+                            <td data-value="{{ player.rpg|default(0.0) }}">{{ "%.1f"|format(player.rpg|default(0.0)) }}</td>
+                            <td data-value="{{ player.apg|default(0.0) }}">{{ "%.1f"|format(player.apg|default(0.0)) }}</td>
+                            <td data-value="{{ player.spg|default(0.0) }}">{{ "%.1f"|format(player.spg|default(0.0)) }}</td>
+                            <td data-value="{{ player.bpg|default(0.0) }}">{{ "%.1f"|format(player.bpg|default(0.0)) }}</td>
+                            <td data-value="{{ player.to|default(0.0) }}">{{ "%.1f"|format(player.to|default(0.0)) }}</td>
+                            <td data-value="{{ player.pf|default(0.0) }}">{{ "%.1f"|format(player.pf|default(0.0)) }}</td>
+                            <td data-value="{{ player.ast_to|default(0.0) }}">
+                                {% if player.ast_to and player.ast_to > 0 %}
+                                    {{ "%.1f"|format(player.ast_to) }}
+                                {% else %}
+                                    0.0
+                                {% endif %}
+                            </td>
                         </tr>
                         {% endfor %}
                     {% else %}
@@ -133,36 +155,48 @@
             <div class="team-section">
                 <h2>Top Performers</h2>
                 <div class="top-performers">
-                    {% if roster %}
+                    {% if roster and roster|length > 0 %}
                         <div class="top-performer-categories">
                             <!-- Points Leader -->
                             <div class="top-performer-category">
                                 <h3>Points Leader</h3>
-                                {% set points_leader = roster|sort(attribute='ppg')|reverse|first %}
-                                <div class="performer-info">
-                                    <div class="performer-name">{{ points_leader.name }}</div>
-                                    <div class="performer-value">{{ points_leader.ppg|default('0.0') }} PPG</div>
-                                </div>
+                                {% set points_leader = roster|selectattr('ppg', 'defined')|sort(attribute='ppg', reverse=true)|first %}
+                                {% if points_leader %}
+                                    <div class="performer-info">
+                                        <div class="performer-name">{{ points_leader.name }}</div>
+                                        <div class="performer-value">{{ "%.1f"|format(points_leader.ppg|default(0.0)) }} PPG</div>
+                                    </div>
+                                {% else %}
+                                    <div class="no-data">No data available</div>
+                                {% endif %}
                             </div>
                             
                             <!-- Rebounds Leader -->
                             <div class="top-performer-category">
                                 <h3>Rebounds Leader</h3>
-                                {% set rebounds_leader = roster|sort(attribute='rpg')|reverse|first %}
-                                <div class="performer-info">
-                                    <div class="performer-name">{{ rebounds_leader.name }}</div>
-                                    <div class="performer-value">{{ rebounds_leader.rpg|default('0.0') }} RPG</div>
-                                </div>
+                                {% set rebounds_leader = roster|selectattr('rpg', 'defined')|sort(attribute='rpg', reverse=true)|first %}
+                                {% if rebounds_leader %}
+                                    <div class="performer-info">
+                                        <div class="performer-name">{{ rebounds_leader.name }}</div>
+                                        <div class="performer-value">{{ "%.1f"|format(rebounds_leader.rpg|default(0.0)) }} RPG</div>
+                                    </div>
+                                {% else %}
+                                    <div class="no-data">No data available</div>
+                                {% endif %}
                             </div>
                             
                             <!-- Assists Leader -->
                             <div class="top-performer-category">
                                 <h3>Assists Leader</h3>
-                                {% set assists_leader = roster|sort(attribute='apg')|reverse|first %}
-                                <div class="performer-info">
-                                    <div class="performer-name">{{ assists_leader.name }}</div>
-                                    <div class="performer-value">{{ assists_leader.apg|default('0.0') }} APG</div>
-                                </div>
+                                {% set assists_leader = roster|selectattr('apg', 'defined')|sort(attribute='apg', reverse=true)|first %}
+                                {% if assists_leader %}
+                                    <div class="performer-info">
+                                        <div class="performer-name">{{ assists_leader.name }}</div>
+                                        <div class="performer-value">{{ "%.1f"|format(assists_leader.apg|default(0.0)) }} APG</div>
+                                    </div>
+                                {% else %}
+                                    <div class="no-data">No data available</div>
+                                {% endif %}
                             </div>
                         </div>
                     {% else %}
@@ -178,7 +212,7 @@
             <div class="team-section">
                 <h2>Upcoming Games</h2>
                 <div class="upcoming-games">
-                    {% if upcoming_games %}
+                    {% if upcoming_games and upcoming_games|length > 0 %}
                         {% for game in upcoming_games %}
                         <div class="game-card">
                             <div class="game-date">{{ game.date }}</div>
@@ -192,14 +226,14 @@
                             <div class="win-probability">
                                 <div class="probability-label">Win Probability</div>
                                 <div class="probability-bar">
-                                    <div class="probability-fill" style="width: {{ game.win_probability }}%"></div>
-                                    <div class="probability-text">{{ game.win_probability }}%</div>
+                                    <div class="probability-fill" style="width: {{ game.win_probability|default(50) }}%"></div>
+                                    <div class="probability-text">{{ game.win_probability|default(50) }}%</div>
                                 </div>
                             </div>
                         </div>
                         {% endfor %}
                     {% else %}
-                        <div class="no-data">No upcoming games</div>
+                        <div class="no-data">No upcoming games scheduled</div>
                     {% endif %}
                 </div>
             </div>
@@ -209,21 +243,26 @@
                 <h2>Team Form</h2>
                 <div class="team-form">
                     <div class="form-indicator">
-                        <div class="form-title">Last 10 Games</div>
+                        <div class="form-title">Season Record</div>
                         <div class="form-circles">
-                            {% for i in range(5) %}
-                            <span class="form-circle win"></span>
-                            <span class="form-circle loss"></span>
+                            <!-- Simple representation based on win percentage -->
+                            {% set win_pct = (team_stats.win_pct * 100)|round(0)|int %}
+                            {% for i in range(10) %}
+                                {% if i < (win_pct / 10)|int %}
+                                    <span class="form-circle win"></span>
+                                {% else %}
+                                    <span class="form-circle loss"></span>
+                                {% endif %}
                             {% endfor %}
                         </div>
                     </div>
                     <div class="form-stats">
                         <div class="form-stat">
-                            <div class="form-stat-value">{{ team_stats.wins }}</div>
+                            <div class="form-stat-value">{{ team_stats.wins|default(0) }}</div>
                             <div class="form-stat-label">Wins</div>
                         </div>
                         <div class="form-stat">
-                            <div class="form-stat-value">{{ team_stats.losses }}</div>
+                            <div class="form-stat-value">{{ team_stats.losses|default(0) }}</div>
                             <div class="form-stat-label">Losses</div>
                         </div>
                         <div class="form-stat">
@@ -237,5 +276,131 @@
     </div>
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Enhanced roster functionality
+    const searchInput = document.getElementById('player-search');
+    const sortSelect = document.getElementById('sort-select');
+    const table = document.getElementById('roster-table');
+    const rows = Array.from(table.querySelectorAll('tbody .player-row'));
+    
+    // Search functionality
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            rows.forEach(row => {
+                const playerName = row.getAttribute('data-player-name');
+                if (playerName && playerName.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    // Sort functionality
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function() {
+            const sortBy = this.value;
+            sortTable(sortBy);
+        });
+    }
+    
+    // Table header click sorting
+    const headers = table.querySelectorAll('th[data-sort]');
+    headers.forEach(header => {
+        header.style.cursor = 'pointer';
+        header.addEventListener('click', function() {
+            const sortBy = this.getAttribute('data-sort');
+            sortTable(sortBy);
+            if (sortSelect) {
+                sortSelect.value = sortBy;
+            }
+        });
+    });
+    
+    function sortTable(sortBy) {
+        const tbody = table.querySelector('tbody');
+        const sortedRows = rows.slice().sort((a, b) => {
+            const aValue = getValueForSort(a, sortBy);
+            const bValue = getValueForSort(b, sortBy);
+            
+            // Handle numeric vs string comparison
+            if (isNumeric(aValue) && isNumeric(bValue)) {
+                const aNum = parseFloat(aValue);
+                const bNum = parseFloat(bValue);
+                
+                // Special handling for jersey numbers (ascending)
+                if (sortBy === 'jersey') {
+                    return aNum - bNum;
+                }
+                // Descending for most stats
+                return bNum - aNum;
+            } else {
+                // Ascending for strings (names, positions)
+                return aValue.localeCompare(bValue);
+            }
+        });
+        
+        // Clear and re-append sorted rows
+        tbody.innerHTML = '';
+        sortedRows.forEach(row => tbody.appendChild(row));
+    }
+    
+    function getValueForSort(row, sortBy) {
+        const cells = row.querySelectorAll('td');
+        const headerIndex = Array.from(table.querySelectorAll('th')).findIndex(th => 
+            th.getAttribute('data-sort') === sortBy
+        );
+        
+        if (headerIndex >= 0 && cells[headerIndex]) {
+            const cellValue = cells[headerIndex].getAttribute('data-value') || cells[headerIndex].textContent;
+            return cellValue.toString().trim();
+        }
+        return '';
+    }
+    
+    function isNumeric(value) {
+        return !isNaN(parseFloat(value)) && isFinite(value);
+    }
+    
+    // Add hover effects for interactive elements
+    const gameCards = document.querySelectorAll('.game-card');
+    gameCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+            this.style.transition = 'all 0.2s ease';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '';
+        });
+    });
+    
+    // Add loading indicator for roster table
+    const rosterTable = document.querySelector('.roster-table');
+    if (rosterTable && rows.length === 0) {
+        const loadingMsg = document.createElement('div');
+        loadingMsg.className = 'loading-message';
+        loadingMsg.textContent = 'Loading roster data...';
+        loadingMsg.style.textAlign = 'center';
+        loadingMsg.style.padding = '20px';
+        loadingMsg.style.color = '#666';
+        rosterTable.appendChild(loadingMsg);
+    }
+    
+    // Auto-refresh data every 5 minutes
+    setInterval(function() {
+        const teamId = window.location.pathname.split('/').pop();
+        if (teamId && /^\d+$/.test(teamId)) {
+            // Optionally refresh data - you can implement this if needed
+            console.log('Auto-refresh would trigger here for team:', teamId);
+        }
+    }, 300000); // 5 minutes
+});
+</script>
 
 {% endblock %}

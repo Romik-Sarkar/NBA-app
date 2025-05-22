@@ -29,7 +29,9 @@
             <label for="team">Team:</label>
             <select id="team">
                 <option value="all">All Teams</option>
-                <!-- Teams populated by JavaScript -->
+                {% for team in teams %}
+                    <option value="{{ team.abbreviation }}">{{ team.full_name }}</option>
+                {% endfor %}
             </select>
         </div>
     </section>
@@ -38,19 +40,91 @@
     <section class="games-container">
         <div class="games-header">
             <h2>Today's Games (<span id="displayed-date">{{ current_date | date_format }}</span>)</h2>
-            <div class="games-counter">Loading...</div>
+            <div class="games-counter">{{ games|length }} game{{ 's' if games|length != 1 else '' }}</div>
         </div>
         
-        <div class="games-grid">
-            <!-- Game cards populated by JavaScript -->
-            <div class="loading">Loading games...</div>
+        <div class="games-grid" id="games-grid">
+            {% if games %}
+                {% for game in games %}
+                    <div class="game-card" data-home-team="{{ game.home_team.abbreviation }}" data-visitor-team="{{ game.visitor_team.abbreviation }}">
+                        <div class="game-time">
+                            {% if game.status.id == 1 %}
+                                {{ game.game_time }}
+                            {% elif game.status.id == 2 %}
+                                <span class="live-indicator">LIVE</span>
+                            {% elif game.status.id == 3 %}
+                                FINAL
+                            {% else %}
+                                {{ game.status.text }}
+                            {% endif %}
+                        </div>
+                        
+                        <div class="teams-container">
+                            <!-- Visitor Team -->
+                            <div class="team visitor-team">
+                                <div class="team-logo">
+                                    <img src="https://cdn.nba.com/logos/nba/{{ game.visitor_team.id }}/primary/L/logo.svg" 
+                                         alt="{{ game.visitor_team.name }} logo" 
+                                         onerror="this.src='/static/img/nba-logo.png'">
+                                </div>
+                                <div class="team-info">
+                                    <div class="team-name">{{ game.visitor_team.name }}</div>
+                                    <div class="team-record">{{ game.visitor_team.abbreviation }}</div>
+                                </div>
+                                {% if game.visitor_team.score is not none %}
+                                    <div class="team-score">{{ game.visitor_team.score }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="vs-divider">@</div>
+                            
+                            <!-- Home Team -->
+                            <div class="team home-team">
+                                <div class="team-logo">
+                                    <img src="https://cdn.nba.com/logos/nba/{{ game.home_team.id }}/primary/L/logo.svg" 
+                                         alt="{{ game.home_team.name }} logo" 
+                                         onerror="this.src='/static/img/nba-logo.png'">
+                                </div>
+                                <div class="team-info">
+                                    <div class="team-name">{{ game.home_team.name }}</div>
+                                    <div class="team-record">{{ game.home_team.abbreviation }}</div>
+                                </div>
+                                {% if game.home_team.score is not none %}
+                                    <div class="team-score">{{ game.home_team.score }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        {% if game.status.id == 1 %}
+                            <!-- Win Probability Section for upcoming games -->
+                            <div class="win-probability">
+                                <div class="probability-label">Win Probability</div>
+                                <div class="probability-container">
+                                    <div class="probability-team">
+                                        <span class="team-abbr">{{ game.visitor_team.abbreviation }}</span>
+                                        <span class="probability-value">{{ game.visitor_win_probability|default(50) }}%</span>
+                                    </div>
+                                    <div class="probability-bar">
+                                        <div class="probability-fill visitor" style="width: {{ game.visitor_win_probability|default(50) }}%"></div>
+                                        <div class="probability-fill home" style="width: {{ game.home_win_probability|default(50) }}%"></div>
+                                    </div>
+                                    <div class="probability-team">
+                                        <span class="probability-value">{{ game.home_win_probability|default(50) }}%</span>
+                                        <span class="team-abbr">{{ game.home_team.abbreviation }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-games">No games scheduled for this date.</div>
+            {% endif %}
         </div>
     </section>
 
     <!-- Load date-selector.js first -->
     <script src="{{ url_for('static', filename='js/date-selector.js') }}"></script>
-    <!-- Load the new gameData.js file -->
-    <script src="{{ url_for('static', filename='js/gameData.js') }}"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -59,48 +133,41 @@
             const gamesGrid = document.querySelector('.games-grid');
             const gamesCounter = document.querySelector('.games-counter');
             
-            // Populate teams dropdown with fetched data
-            gameDataManager.on('onTeamsLoaded', nbaTeams => {
-                nbaTeams.forEach(team => {
-                    const option = document.createElement('option');
-                    option.value = team.abbreviation;
-                    option.textContent = team.full_name;
-                    teamSelect.appendChild(option);
-                });
-            });
-            
-            // Handle when games are loaded
-            gameDataManager.on('onGamesLoaded', games => {
-                gamesGrid.innerHTML = '';
-                
-                if (games.length === 0) {
-                    gamesGrid.innerHTML = '<div class="no-games">No games scheduled for this date.</div>';
-                    gamesCounter.textContent = '0 games';
-                    return;
-                }
-                
-                // Update games counter
-                gamesCounter.textContent = `${games.length} game${games.length !== 1 ? 's' : ''}`;
-                
-                // Create and append game cards
-                games.forEach(game => {
-                    const gameCard = gameDataManager.createGameCard(game);
-                    gamesGrid.appendChild(gameCard);
-                });
-                
-                // Load team logos after adding game cards to DOM
-                gameDataManager.loadTeamLogos();
-                
-                // Apply filters after games are loaded
-                applyFilters();
-            });
-            
             // Function to apply filters
             function applyFilters() {
                 const selectedTeam = teamSelect.value;
                 const gameCards = document.querySelectorAll('.game-card');
+                let visibleGames = 0;
                 
-                gameDataManager.filterGamesByTeam(selectedTeam, gameCards, gamesCounter, gamesGrid);
+                gameCards.forEach(card => {
+                    const homeTeam = card.getAttribute('data-home-team');
+                    const visitorTeam = card.getAttribute('data-visitor-team');
+                    
+                    if (selectedTeam === 'all' || homeTeam === selectedTeam || visitorTeam === selectedTeam) {
+                        card.style.display = 'block';
+                        visibleGames++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+                
+                // Update games counter
+                gamesCounter.textContent = `${visibleGames} game${visibleGames !== 1 ? 's' : ''}`;
+                
+                // Show no games message if needed
+                if (visibleGames === 0 && gameCards.length > 0) {
+                    if (!document.querySelector('.no-games-filtered')) {
+                        const noGamesMsg = document.createElement('div');
+                        noGamesMsg.className = 'no-games no-games-filtered';
+                        noGamesMsg.textContent = 'No games found for the selected team.';
+                        gamesGrid.appendChild(noGamesMsg);
+                    }
+                } else {
+                    const existingMsg = document.querySelector('.no-games-filtered');
+                    if (existingMsg) {
+                        existingMsg.remove();
+                    }
+                }
             }
             
             // Event listeners for automatic updates
@@ -108,16 +175,17 @@
             
             // Function to load games for a specific date
             function loadGamesForDate(date) {
-                gamesGrid.innerHTML = '<div class="loading">Loading games...</div>';
-                gameDataManager.fetchGames(date);
+                // Redirect to the same page with new date parameter
+                const url = new URL(window.location);
+                url.searchParams.set('date', date);
+                window.location.href = url.toString();
             }
             
             // Expose function to global scope for date-selector.js to use
             window.fetchGames = loadGamesForDate;
             
-            // Initialize
-            gameDataManager.fetchTeams();
-            loadGamesForDate(document.getElementById('date').value);
+            // Initialize filters
+            applyFilters();
         });
     </script>
 {% endblock %}
